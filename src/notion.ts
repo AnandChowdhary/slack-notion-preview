@@ -111,9 +111,11 @@ const helper = {
       return
     }
     if (page.last_edited_by && page.last_edited_by.id) {
+      logger.log(`got user id ${page.last_edited_by.id}`)
       const user = await notionClient.users.retrieve({
         user_id: page.last_edited_by.id,
       })
+      logger.log(`got user details ${user.name}`)
       return {
         name: user.name || 'Unknown user',
         link:
