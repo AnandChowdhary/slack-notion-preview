@@ -41,7 +41,8 @@ slackApp.event('link_shared', async ({ event, client }) => {
       text,
       title_link: link.url,
       footer: pageData.breadcrumbs.join(' / '),
-      footer_icon: 'https://avatars.githubusercontent.com/makenotion?s=48',
+      footer_icon:
+        'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
       author_icon: pageData.author?.icon,
       author_link: pageData.author?.link,
       author_name: pageData.author?.name,
