@@ -27,7 +27,7 @@ export const notionService = {
   }> {
     const page = await notionClient.pages.retrieve({ page_id: pageId })
     return {
-      title: helper.getPageTitle(page),
+      title: helper.getPageTitle(page, { emoji: true }),
       author: await helper.getPageAuthor(page),
       breadcrumbs: await helper.getPageBreadcrumbs(page, options),
     }
@@ -86,7 +86,7 @@ export const notionService = {
 }
 
 const helper = {
-  getPageTitle(page: GetPageResponse): string {
+  getPageTitle(page: GetPageResponse, opts?: { emoji: boolean }): string {
     let title = ''
     // Descriminating union
     if (!('properties' in page)) {
@@ -97,7 +97,7 @@ const helper = {
       // Descriminating union
       if (property.type !== 'title') continue
       title = property.title.map(x => x.plain_text).join('')
-      if (page.icon && page.icon.type === 'emoji')
+      if (opts && opts.emoji && page.icon && page.icon.type === 'emoji')
         title = page.icon.emoji + ' ' + title
     }
     return title
