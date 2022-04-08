@@ -35,12 +35,16 @@ slackApp.event('link_shared', async ({ event, client }) => {
       notionService.getPageData(notionPageId),
       notionService.getPageBody(notionPageId),
     ])
-    // Note that the key of the unfurl must be the same as the URL shared on slack.
+    // Note that the key of the unfurl must be the same as the URL shared on slack.)
     unfurls[link.url] = {
       title: pageData.title,
       text,
       title_link: link.url,
       footer: pageData.breadcrumbs.join(' / '),
+      footer_icon: 'https://avatars.githubusercontent.com/makenotion?s=48',
+      author_icon: pageData.author?.icon,
+      author_link: pageData.author?.link,
+      author_name: pageData.author?.name,
     }
   }
   await client.chat.unfurl({

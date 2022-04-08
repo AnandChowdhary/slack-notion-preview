@@ -20,10 +20,15 @@ export const notionService = {
     options = {
       breadcrumbsDepth: 2,
     }
-  ): Promise<{ title: string; breadcrumbs: string[] }> {
+  ): Promise<{
+    title: string
+    breadcrumbs: string[]
+    author?: { name: string; link: string; icon: string }
+  }> {
     const page = await notionClient.pages.retrieve({ page_id: pageId })
     return {
       title: helper.getPageTitle(page),
+      author: await helper.getPageAuthor(page),
       breadcrumbs: await helper.getPageBreadcrumbs(page, options),
     }
   },
@@ -45,7 +50,7 @@ export const notionService = {
       const blockContent = helper.getBlockContent(block)
       if (blockContent.length > 0) {
         text += INDENT.repeat(options.indent)
-        text += blockContent
+        text += blockContent.trim()
         text += NEWLINE
       }
 
@@ -92,8 +97,34 @@ const helper = {
       // Descriminating union
       if (property.type !== 'title') continue
       title = property.title.map(x => x.plain_text).join('')
+      if (page.icon && page.icon.type === 'emoji')
+        title = page.icon.emoji + ' ' + title
     }
     return title
+  },
+
+  async getPageAuthor(
+    page: GetPageResponse
+  ): Promise<undefined | { name: string; link: string; icon: string }> {
+    if (!('properties' in page)) {
+      logger.error(`properties not found in ${page}`)
+      return
+    }
+    if (page.last_edited_by && page.last_edited_by.id) {
+      const user = await notionClient.users.retrieve({
+        user_id: page.last_edited_by.id,
+      })
+      return {
+        name: user.name || 'Unknown user',
+        link:
+          'https://pabio.com/about/team/' +
+          (user.name || '').split(' ')[0].toLowerCase() +
+          '/',
+        icon:
+          user.avatar_url ||
+          'https://avatars.githubusercontent.com/pabio-escobar?s=48',
+      }
+    }
   },
 
   async getPageBreadcrumbs(
@@ -164,14 +195,18 @@ const helper = {
         return block.paragraph.rich_text.map(x => x.plain_text).join('')
 
       case 'heading_1':
-        return '# ' + block.heading_1.rich_text.map(x => x.plain_text).join('')
+        return (
+          '*' + block.heading_1.rich_text.map(x => x.plain_text).join('') + '*'
+        )
 
       case 'heading_2':
-        return '## ' + block.heading_2.rich_text.map(x => x.plain_text).join('')
+        return (
+          '*' + block.heading_2.rich_text.map(x => x.plain_text).join('') + '*'
+        )
 
       case 'heading_3':
         return (
-          '### ' + block.heading_3.rich_text.map(x => x.plain_text).join('')
+          '*' + block.heading_3.rich_text.map(x => x.plain_text).join('') + '*'
         )
 
       case 'to_do':
